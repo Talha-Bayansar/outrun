@@ -1,11 +1,13 @@
 # Current phase
 
 **Updated:** 2026-10-02  
-**Phase:** Product definition and technical planning.
+**Phase:** Domain foundation implementation started.
 
 ## Current state
 
 The founding brief is documented in [product.md](product.md), with a separate [MVP boundary](mvp.md) and focused design documents. This repository has no implemented mobile application, backend, database, or deployed infrastructure yet.
+
+The first shared TypeScript package now implements lobby membership, role assignment, readiness, start/abort authorization, idempotent command receipts, round deadlines, reveal timing, and timer-based runner results. Run `npm test`; see [implementation notes](../packages/game-engine/README.md) for boundaries. Capture, location, transport validation, and hunter victory remain unimplemented, so milestone 2 is not complete. The browser prototype is still a separate simulated design artifact.
 
 The stack is proposed. Detailed behavior marked as proposed is available for review and must be finalized before the relevant implementation.
 

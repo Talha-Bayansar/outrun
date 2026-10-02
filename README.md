@@ -6,7 +6,15 @@ Outrun turns the real world into a multiplayer game. Players create a game, invi
 
 The first release focuses on one excellent Manhunt experience for casual groups of 4–20 players on iOS and Android.
 
-This repository currently contains planning documentation. The technology stack and architecture are proposals, not an implemented system.
+This repository contains planning documentation, a runnable browser prototype, and the first shared TypeScript game-engine package. Mobile and multiplayer infrastructure are not implemented yet.
+
+## Application development
+
+Run `npm test` with Node 24 or newer to verify the [game engine](packages/game-engine/README.md). It implements lobby membership, roles, readiness, authorized start/abort, command retries, round deadlines, reveal timing, and timer-based results without device or network dependencies.
+
+## Try the prototype
+
+Run `npm run dev` and open http://localhost:4173. Create a Manhunt game or join with `RUN42`, ready up, and explore a simulated round. See [prototype notes](prototype/README.md) for demo controls and layout options.
 
 ## Project documentation
 

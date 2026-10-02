@@ -1,0 +1,10 @@
+{
+  "name": "outrun",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "dev": "node prototype/server.mjs",
+    "test": "node --test packages/game-engine/test/*.test.ts"
+  }
+}
