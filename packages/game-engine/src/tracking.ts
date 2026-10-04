@@ -28,7 +28,7 @@ export function reconcileTracking(state: State, tracking: TrackingState, now: nu
   if (state.id !== tracking.sessionId) throw new Error('Tracking session mismatch');
   const current = advance(state, now);
   if (current.phase === 'ended' || current.phase === 'cancelled') return createTracking(state.id);
-  const latest = Object.fromEntries(current.players.filter(p => !p.eliminated).flatMap(player => {
+  const latest = Object.fromEntries(current.players.filter(p => !p.eliminated && !p.left).flatMap(player => {
     const sample = ownSample(tracking, player.id);
     return sample ? [[player.id, { ...sample }]] : [];
   }));
@@ -36,10 +36,10 @@ export function reconcileTracking(state: State, tracking: TrackingState, now: nu
   if (!window) return { sessionId: state.id, latest };
   if (tracking.reveal?.number === window.number) {
     return { sessionId: state.id, latest, reveal: { ...tracking.reveal,
-      markers: tracking.reveal.markers.filter(marker => current.players.some(p => p.id === marker.playerId && p.role === 'runner' && !p.eliminated))
+      markers: tracking.reveal.markers.filter(marker => current.players.some(p => p.id === marker.playerId && p.role === 'runner' && !p.eliminated && !p.left))
         .map(marker => ({ ...marker })) } };
   }
-  const markers = current.players.filter(p => p.role === 'runner' && !p.eliminated).flatMap(player => {
+  const markers = current.players.filter(p => p.role === 'runner' && !p.eliminated && !p.left).flatMap(player => {
     const sample = ownSample(tracking, player.id);
     // Recovery uses only samples already received at the original window start.
     if (!sample || observationRejection(sample, window.startsAt, policy)) return [];
@@ -54,7 +54,7 @@ export function ingestLocation(state: State, tracking: TrackingState, actorId: s
   { tracking: TrackingState; accepted: boolean; reason?: LocationRejection | 'membership_required' | 'tracking_inactive' } {
   const current = advance(state, now);
   const next = reconcileTracking(current, tracking, now, policy);
-  if (!current.players.some(p => p.id === actorId)) return { tracking: next, accepted: false, reason: 'membership_required' };
+  if (!current.players.some(p => p.id === actorId && !p.left)) return { tracking: next, accepted: false, reason: 'membership_required' };
   if (current.players.find(p => p.id === actorId)?.eliminated || !['countdown', 'head_start', 'active'].includes(current.phase)) return { tracking: next, accepted: false, reason: 'tracking_inactive' };
   // Explicit fields discard client-supplied receipt times and extra metadata.
   const observation: Observation = { latitude: sample.latitude, longitude: sample.longitude,
@@ -69,7 +69,7 @@ export function projectLocations(state: State, tracking: TrackingState, actorId:
   const current = advance(state, now);
   const next = reconcileTracking(current, tracking, now, policy);
   const player = current.players.find(p => p.id === actorId);
-  if (!player || player.eliminated || !['countdown', 'head_start', 'active'].includes(current.phase)) return {};
+  if (!player || player.left || player.eliminated || !['countdown', 'head_start', 'active'].includes(current.phase)) return {};
   const result: { own?: RevealMarker; reveal?: NonNullable<TrackingState['reveal']> } = {};
   const sample = ownSample(next, actorId);
   if (sample && !observationRejection(sample, now, policy)) {

@@ -1,0 +1,12 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "outrun-api",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": {"bindings": [{"name": "GAMES", "class_name": "GameSession"}, {"name": "DIRECTORY", "class_name": "GameDirectory"}]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["GameSession", "GameDirectory"]}],
+  "r2_buckets": [{"binding": "EVIDENCE", "bucket_name": "outrun-evidence"}],
+  "observability": {"enabled": true, "head_sampling_rate": 1},
+  "vars": {"ALLOWED_ORIGINS": "http://localhost:8081,http://localhost:4173"}
+}

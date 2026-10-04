@@ -1,6 +1,6 @@
 # Game engine
 
-The first application package implements pure TypeScript Manhunt lobby and timer rules. Run `npm test` with Node 24 or newer. Node's native TypeScript support executes the tests without build dependencies; this does not replace static type checking when the app toolchain is introduced.
+The engine implements pure TypeScript Manhunt lobby, timers, captures, forfeits, settings, location geometry, and privacy projections. Run `npm test` with Node 24+ and `npm run check` for static checking. Platform adapters now live in `services/api`; descriptions of future adapter responsibilities below describe the engine boundary, not the current repository's implementation status. See [development](../../docs/development.md).
 
 Create a session, submit authenticated commands through `transition`, and call `advance` using authoritative milliseconds. Inputs are not mutated. Persist the returned state and receipts together before acknowledging a command. Adapters must serialize commands and derive `actorId` from credentials. Command receipts currently grow with the session; transport rate limits and retention belong in the future coordinator.
 
@@ -32,7 +32,7 @@ All policy thresholds are required caller inputs, with no production defaults. O
 
 `projectLocations` returns a fresh own marker and, for hunters only, the current frozen reveal. Hosts receive their gameplay role's view. Outsiders and terminal sessions receive no locations. Projection copies prevent callers from modifying private observations or snapshots. Never broadcast `TrackingState` or internal session storage. Clients must also expire cached markers locally using server deadlines; server filtering alone cannot erase an offline client's cache.
 
-These are pure domain helpers, not a network service. Durable scheduling/storage, transport schemas, rate limiting, and mobile tracking remain future work. One latest observation per member bounds storage without retaining a movement trail; numeric policy values still require field testing.
+These are pure domain helpers; the network service, durable scheduling/storage, rate limits, and mobile tracking adapters are implemented separately. One latest observation per member bounds storage without retaining a movement trail; numeric policy values still require field testing.
 
 ## Capture lifecycle
 

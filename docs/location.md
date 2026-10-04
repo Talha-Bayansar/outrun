@@ -1,6 +1,6 @@
 # Location mechanics
 
-**Status:** Pure observation validation, geometry, proximity, and boundary helpers are implemented in the shared engine. Pure member ingestion and role-specific frozen reveal projections are implemented; durable coordinator integration and device collection remain proposed. Numeric GPS quality and tolerance limits require field measurements.
+**Status:** Observation validation, geometry/proximity/boundary helpers, private member ingestion, frozen reveals, durable scheduling, and Expo collection adapters are implemented locally. Numeric trial thresholds are documented in [development](development.md); physical background tracking and GPS calibration require device/field measurements.
 
 ## Separate responsibilities
 

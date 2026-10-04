@@ -31,7 +31,7 @@ function confirm(state: State, id: string, now: number): State {
   const players = state.players.map(p => p.id === capture.targetId ? { ...p, eliminated: true } : p);
   let next: State = { ...state, players, captures: state.captures!.map(c => c.id === id ?
     { ...c, status: 'confirmed', resolvedAt: now } : c.targetId === capture.targetId && unresolved(c) ? { ...c, status: 'expired' } : c) };
-  if (players.filter(p => p.role === 'runner').every(p => p.eliminated)) {
+  if (players.filter(p => p.role === 'runner' && !p.left).every(p => p.eliminated)) {
     next = expireCaptures({ ...next, phase: 'ended', result: { winner: 'hunters', endedAt: now } });
   }
   return next;
@@ -52,12 +52,12 @@ export function captureTransition(state: State, command: Command & CaptureComman
   context?: CaptureContext): { state: State; reason?: string } {
   const reject = (reason: string) => ({ state, reason });
   const actor = state.players.find(p => p.id === command.actorId);
-  if (!actor) return reject('membership_required');
+  if (!actor || actor.left) return reject('membership_required');
   if (state.phase !== 'active') return reject('hunting_required');
   if (command.type === 'capture') {
     if (actor.role !== 'hunter' || actor.eliminated) return reject('hunter_required');
     const target = state.players.find(p => p.id === command.targetId);
-    if (!target || target.role !== 'runner' || target.eliminated || target.id === actor.id) return reject('target_unavailable');
+    if (!target || target.left || target.role !== 'runner' || target.eliminated || target.id === actor.id) return reject('target_unavailable');
     if (!context || context.tracking.sessionId !== state.id) return reject('capture_context_required');
     if (![context.responseMs, context.reviewMs].every(v => Number.isSafeInteger(v) && v > 0) ||
         !Number.isSafeInteger(now + context.responseMs + context.reviewMs)) return reject('invalid_capture_policy');

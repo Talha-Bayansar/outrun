@@ -61,7 +61,7 @@ Keep participation (`joined`, `left`), connection (`connected`, `disconnected`),
 
 MVP late joining is disabled after start. A previously joined player can reconnect. An active runner remains eligible for capture when disconnected only if server observations meet the capture policy; missing GPS cannot be treated as proof of proximity.
 
-Proposed departure policy: an explicit active-game leave is a forfeit recorded by the coordinator; temporary disconnect is not. If all hunters forfeit, end as cancelled rather than inventing a competitive winner. Confirm this policy during field design.
+Implemented local departure policy: explicit active-game leave is a forfeit; temporary disconnect is separate. All hunters forfeiting cancels. Host departure transfers control to the earliest remaining member. Lobby departures revoke membership and are excluded from readiness/capacity/victory checks. Departures clear private tracking and expire involved unresolved captures. Field balancing remains to be evaluated.
 
 ## Commands, actions, and events
 

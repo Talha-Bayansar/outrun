@@ -1,6 +1,6 @@
 # Architecture
 
-**Status:** Proposed architecture for the Manhunt MVP. No infrastructure is implemented yet.
+**Status:** Expo client, Workers API, SQLite-backed Durable Object authority, private R2 photos, and typed transport are implemented locally. External Neon/Drizzle history/export and production deployment remain proposed. See [development](development.md) for verified scope and policies.
 
 ## Goals
 
@@ -70,7 +70,9 @@ Private R2 objects store capture photos. API-authorized uploads are bounded by s
 | `packages/config` | Shared TypeScript and tooling configuration |
 | `packages/utils` | Only genuinely shared utilities with clear ownership |
 
-Use pnpm and Turborepo when application code is introduced. Avoid creating unused packages simply to match this tree.
+The implementation retains npm workspaces and one lockfile, extending the repository's existing tooling. pnpm/Turborepo migration is deferred until caching or repository growth justifies it. Avoid creating unused packages simply to match this tree.
+
+Local implementation decisions: native maps use `react-native-maps`, with a schematic browser boundary overview; the API uses native Workers routing and explicit runtime parsers rather than adding Hono/Zod. Guest credentials are opaque, membership-scoped, SHA-256 hashed at rest, and expire in 24 hours. Atomic Durable Object writes persist gameplay/receipts/tracking/evidence references and the next alarm. SQL export is not involved in local acknowledgement.
 
 ## Dependency rules
 

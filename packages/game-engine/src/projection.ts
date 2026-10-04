@@ -16,7 +16,7 @@ export interface SessionView {
 /** Authenticated membership is supplied by the adapter. Never serialize raw State. */
 export function projectSession(state: State, recipientId: string, now: number): SessionView | undefined {
   const current = advance(state, now);
-  if (!current.players.some(p => p.id === recipientId)) return;
+  if (!current.players.some(p => p.id === recipientId && !p.left)) return;
   const captures = (current.captures ?? []).filter(c => c.hunterId === recipientId ||
     c.targetId === recipientId || (recipientId === current.hostId && c.status === 'disputed'))
     .map(c => {

@@ -1,4 +1,6 @@
 import type { Command } from './index.ts';
+import { manhuntDefaults, validateSettings } from './index.ts';
+import type { Settings } from './index.ts';
 import { validCoordinate } from './location.ts';
 import type { DeviceObservation } from './tracking.ts';
 
@@ -47,8 +49,15 @@ export function parseClientCommand(payload: unknown, actorId: string): CommandPa
     case 'assign':
       if (!text(p.playerId) || (p.role !== 'hunter' && p.role !== 'runner')) return invalid;
       command = { ...base, type: 'assign', playerId: p.playerId, role: p.role }; fields = ['playerId', 'role']; break;
-    case 'start': case 'abort':
+    case 'start': case 'abort': case 'leave':
       command = { ...base, type: p.type }; fields = []; break;
+    case 'settings': {
+      try { validateSettings(p.settings as Settings); } catch { return invalid; }
+      const input = p.settings as Settings;
+      const settings: Settings = { preparationMs: input.preparationMs, headStartMs: input.headStartMs,
+        durationMs: input.durationMs, revealIntervalMs: input.revealIntervalMs, revealWindowMs: input.revealWindowMs };
+      command = { ...base, type: 'settings', settings }; fields = ['settings']; break;
+    }
     case 'capture':
       if (!text(p.targetId) || !text(p.evidenceId)) return invalid;
       command = { ...base, type: 'capture', targetId: p.targetId, evidenceId: p.evidenceId }; fields = ['targetId', 'evidenceId']; break;

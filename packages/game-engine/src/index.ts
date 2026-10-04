@@ -21,7 +21,7 @@ export const manhuntDefaults: Readonly<Settings> = Object.freeze({
   preparationMs: 10_000, headStartMs: 180_000, durationMs: 2_700_000,
   revealIntervalMs: 180_000, revealWindowMs: 10_000,
 });
-export interface Player { id: string; name: string; role: Role; ready: boolean; eliminated?: boolean }
+export interface Player { id: string; name: string; role: Role; ready: boolean; eliminated?: boolean; left?: boolean; leftAt?: number }
 export interface State {
   id: string;
   hostId: string;
@@ -40,11 +40,16 @@ export type Command = { id: string; actorId: string } & (
   | { type: 'assign'; playerId: string; role: Role }
   | { type: 'start' }
   | { type: 'abort' }
+  | { type: 'leave' }
+  | { type: 'settings'; settings: Settings }
   | CaptureCommand
 );
 export interface Outcome { state: State; accepted: boolean; reason?: string; duplicate?: boolean }
 
 export function validateSettings(settings: Settings): void {
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings) ||
+    Object.keys(settings).length !== Object.keys(manhuntDefaults).length ||
+    !Object.keys(manhuntDefaults).every(key => Object.hasOwn(settings, key))) throw new Error('Invalid timers');
   for (const value of Object.values(settings)) {
     if (!Number.isSafeInteger(value) || value < 0) throw new Error('Invalid timer');
   }
@@ -104,6 +109,24 @@ export function transition(state: State, command: Command, now: number, context?
   if (!validText(command.id) || !validText(command.actorId)) return { state: next, accepted: false, reason: 'invalid_identity' };
   if (next.phase === 'ended' || next.phase === 'cancelled') return { state: next, accepted: false, reason: 'session_finished' };
   const player = next.players.find(p => p.id === command.actorId);
+  if (command.type === 'leave') {
+    if (!player || player.left) return finish(false, 'membership_required');
+    next = { ...next, players: next.players.map(p => p.id === player.id ?
+      { ...p, left: true, leftAt: now, ready: false, eliminated: next.phase !== 'lobby' } : p),
+      captures: next.captures?.map(c => (c.targetId === player.id || c.hunterId === player.id) &&
+        ['pending_response', 'disputed'].includes(c.status) ? { ...c, status: 'expired', resolvedAt: now } : c) };
+    const remaining = next.players.filter(p => !p.left);
+    if (remaining.length === 0 || (next.phase !== 'lobby' && !remaining.some(p => p.role === 'hunter' && !p.eliminated))) {
+      next = expireCaptures({ ...next, phase: 'cancelled' });
+    } else {
+      if (player.id === next.hostId) next = { ...next, hostId: remaining[0].id };
+      if (next.phase !== 'lobby' && !remaining.some(p => p.role === 'runner' && !p.eliminated)) {
+        next = expireCaptures({ ...next, phase: 'ended', result: { winner: 'hunters', endedAt: now } });
+      }
+    }
+    return finish(true);
+  }
+  if (player?.left) return finish(false, 'membership_required');
   if (command.type === 'abort') {
     if (command.actorId !== next.hostId) return finish(false, 'host_required');
     next = expireCaptures({ ...next, phase: 'cancelled' });
@@ -118,7 +141,7 @@ export function transition(state: State, command: Command, now: number, context?
   if (command.type === 'join') {
     if (player) return finish(false, 'already_joined');
     if (!validText(command.name)) return finish(false, 'invalid_name');
-    if (next.players.length >= 20) return finish(false, 'lobby_full');
+    if (next.players.filter(p => !p.left).length >= 20) return finish(false, 'lobby_full');
     next = { ...next, players: [...next.players, { id: command.actorId, name: command.name.trim(), role: 'runner', ready: false }] };
     return finish(true);
   }
@@ -129,15 +152,21 @@ export function transition(state: State, command: Command, now: number, context?
     return finish(true);
   }
   if (command.actorId !== next.hostId) return finish(false, 'host_required');
+  if (command.type === 'settings') {
+    try { validateSettings(command.settings); } catch { return finish(false, 'invalid_settings'); }
+    next = { ...next, settings: { ...command.settings }, players: next.players.map(p => ({ ...p, ready: false })) };
+    return finish(true);
+  }
   if (command.type === 'assign') {
     if (!['hunter', 'runner'].includes(command.role)) return finish(false, 'invalid_role');
-    if (!next.players.some(p => p.id === command.playerId)) return finish(false, 'player_missing');
+    if (!next.players.some(p => p.id === command.playerId && !p.left)) return finish(false, 'player_missing');
     next = { ...next, players: next.players.map(p => p.id === command.playerId ? { ...p, role: command.role, ready: false } : p) };
     return finish(true);
   }
   if (command.type !== 'start') return finish(false, 'unsupported_command');
-  if (next.players.length < 4 || !next.players.every(p => p.ready) ||
-      !next.players.some(p => p.role === 'hunter') || !next.players.some(p => p.role === 'runner')) {
+  const roster = next.players.filter(p => !p.left);
+  if (roster.length < 4 || !roster.every(p => p.ready) ||
+      !roster.some(p => p.role === 'hunter') || !roster.some(p => p.role === 'runner')) {
     return finish(false, 'roster_not_ready');
   }
   const runnersReleasedAt = now + next.settings.preparationMs;

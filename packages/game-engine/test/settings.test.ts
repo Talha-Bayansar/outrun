@@ -1,0 +1,23 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createSession, transition, manhuntDefaults, parseClientCommand, validateSettings } from '../src/index.ts';
+test('host timer edits reset readiness, canonicalize retries and lock at start', () => {
+  let state = createSession('game', 'host', 'Host', 0);
+  for (const id of ['a', 'b', 'c']) state = transition(state, { id, actorId: id, type: 'join', name: id }, 0).state;
+  state = transition(state, { id: 'ready', actorId: 'host', type: 'ready', ready: true }, 0).state;
+  const settings = { ...manhuntDefaults, durationMs: 120000 };
+  assert.equal(transition(state, { id: 'wrong', actorId: 'a', type: 'settings', settings }, 0).reason, 'host_required');
+  const command = { id: 'change', actorId: 'host', type: 'settings' as const, settings };
+  state = transition(state, command, 0).state;
+  assert.equal(state.players.every(p => !p.ready), true);
+  assert.equal(state.settings.durationMs, 120000);
+  assert.equal(transition(state, command, 1).duplicate, true);
+  const reordered = Object.fromEntries(Object.entries(settings).reverse());
+  const parsed = parseClientCommand({ type: 'settings', id: 'change', settings: reordered }, 'host');
+  assert.equal(parsed.accepted, true);
+  assert.throws(() => validateSettings({} as typeof settings));
+  assert.equal(parseClientCommand({ id: 'bad', type: 'settings', settings: { ...settings, durationMs: '100' } }, 'host').accepted, false);
+  for (const p of state.players) state = transition(state, { id: `ready-${p.id}`, actorId: p.id, type: 'ready', ready: true }, 1).state;
+  state = transition(state, { id: 'start', actorId: 'host', type: 'start' }, 1).state;
+  assert.equal(transition(state, { ...command, id: 'locked' }, 1).reason, 'lobby_required');
+});

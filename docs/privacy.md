@@ -11,7 +11,7 @@
 - Do not collect a full movement trail for a hypothetical future replay.
 - Give players clear ways to leave, stop tracking, and request deletion of retained personal data.
 
-Joining a lobby does not imply indefinite background tracking. Readiness checks can use a one-time location observation; sustained tracking starts during the disclosed game preparation/play phase.
+Joining a lobby does not imply indefinite background tracking. Local readiness checks require explicit consent and refresh every 20 seconds while ready, retaining only a quality-check timestamp on the server. Turning off readiness stops lobby checks. Sustained gameplay tracking starts in preparation/play; screen-locked tracking is separately enabled by the player.
 
 ## Data categories and proposed lifecycle
 

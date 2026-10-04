@@ -10,6 +10,8 @@ If documents disagree, resolve the disagreement and update both documents before
 
 ## Reading order
 
+For running and validating the implementation, start with [local development](development.md).
+
 1. [Product description](product.md)
 2. [MVP scope and acceptance criteria](mvp.md)
 3. [Architecture](architecture.md)

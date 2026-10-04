@@ -1,6 +1,8 @@
 # Realtime and connection recovery
 
-**Status:** Proposed protocol; exact wire schemas and endpoints are pending implementation.
+**Status:** Protocol 1 is implemented locally with HTTP intentions, recipient snapshots, authenticated hibernating WebSockets, durable receipts/alarms, and restart recovery. External SQL export remains proposed.
+
+Endpoints: `POST /games`, `POST /games/:code/join`; authenticated `GET /sessions/:id`, `POST /sessions/:id/commands`, `POST /sessions/:id/locations`, `POST /sessions/:id/evidence`, `GET /sessions/:id/evidence/:evidenceId`, and `DELETE /sessions/:id/membership`. `/sessions/:id/realtime` upgrades to WebSocket; its first message must be `{type: "handshake", protocol: 1, token}` within ten seconds. Tokens never appear in invitation or WebSocket URLs. Commands use HTTP with original-ID retries; snapshot delivery includes five-second HTTP recovery.
 
 ## Authority and connections
 

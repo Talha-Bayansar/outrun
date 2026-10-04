@@ -6,15 +6,19 @@ Outrun turns the real world into a multiplayer game. Players create a game, invi
 
 The first release focuses on one excellent Manhunt experience for casual groups of 4–20 players on iOS and Android.
 
-This repository contains planning documentation, a runnable browser prototype, and the first shared TypeScript game-engine package. Mobile and multiplayer infrastructure are not implemented yet.
+This repository contains a runnable Expo application for iOS, Android, and web, an authoritative Workers multiplayer service, a shared TypeScript game engine, and the original design prototype. Local development uses persistent Durable Object and private R2 emulation without cloud credentials.
 
 ## Application development
 
-Run `npm test` with Node 24 or newer to verify the [game engine](packages/game-engine/README.md). It implements lobby membership, roles, readiness, authorized start/abort, command retries, round deadlines, reveal timing, and timer-based results without device or network dependencies.
+Use Node 24+, run `npm ci`, then `npm run dev`. Open http://localhost:8081; the API runs on port 8787. Create a game and join from separate browser sessions or phones using its six-character code. Four ready players with both roles are required to start.
+
+`npm test` checks the engine, `npm run check` checks types, and `npm run build` bundles the Worker and exports iOS/Android/web assets. With the API running, `npm run test:integration` checks actual HTTP, WebSockets, private photos, and alarms in about 75 seconds.
+
+For phones, run `npm run dev:api` and `npm run dev:mobile` separately and set the game server to your computer's reachable LAN URL. See [local development](docs/development.md) for permissions, recovery testing, and release limitations. Native exports are JavaScript/assets, not signed installable binaries. Production deployment, external SQL history, physical-device validation, and field play remain separate work.
 
 ## Try the prototype
 
-Run `npm run dev` and open http://localhost:4173. Create a Manhunt game or join with `RUN42`, ready up, and explore a simulated round. See [prototype notes](prototype/README.md) for demo controls and layout options.
+Run `npm run dev:prototype` and open http://localhost:4173. The `RUN42` round is simulated and separate from the application. See [prototype notes](prototype/README.md).
 
 ## Project documentation
 

@@ -1,6 +1,6 @@
 # Mobile experience
 
-**Status:** Interaction requirements for the first release; visual designs are not yet created.
+**Status:** The Expo app implements the local journey and exports for web/iOS/Android. Browser lobby creation has been verified. Physical-device permissions, camera/maps, background tracking, battery, and field readability still need device validation. See [development](development.md).
 
 ## Design principles
 

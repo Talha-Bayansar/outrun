@@ -1,6 +1,6 @@
 # Capture and disputes
 
-**Status:** Pure capture lifecycle and private recipient projections implemented: validated submission, acceptance/dispute, host review, automatic confirmation/expiry, elimination, and hunter victory. Numeric confirmation deadlines and GPS thresholds remain configurable open decisions. Private uploads and durable scheduling are not implemented.
+**Status:** Capture lifecycle, recipient projections, private JPEG upload/viewing, proximity checks, durable response/review alarms, elimination, and hunter victory are implemented and tested locally. Local policies use 30-second responses and 120-second dispute review; GPS/media limits are in [development](development.md). Field calibration and deployed-provider validation remain outstanding.
 
 ## Player flow
 

@@ -1,21 +1,21 @@
 # Current phase
 
 **Updated:** 2026-10-04
-**Phase:** Domain foundation implementation started.
+**Phase:** Local application implemented and verified; deployment and field validation remain separate release work.
 
 ## Current state
 
-The founding brief is documented in [product.md](product.md), with a separate [MVP boundary](mvp.md) and focused design documents. This repository has no implemented mobile application, backend, database, or deployed infrastructure yet.
+The project owner confirmed local development and runnable builds as the validation target. The repository now contains an Expo iOS/Android/web app, Workers API, persistent SQLite-backed Durable Object sessions, private R2 photos, typed transport, and the shared rules engine. No cloud infrastructure is deployed. External SQL history/export and physical-device field validation remain outstanding.
 
-The first shared TypeScript package now implements lobby membership, role assignment, readiness, start/abort authorization, idempotent command receipts, round deadlines, reveal timing, and timer-based runner results. Run `npm test`; see [implementation notes](../packages/game-engine/README.md) for boundaries. Pure location validation, great-circle geometry, accuracy-aware proximity, and circular boundary warning helpers are also implemented with caller-supplied policy thresholds. Private member location ingestion, frozen runner reveals, recipient projections, and terminal tracking cleanup are now implemented as pure helpers. Capture submission, target responses, host dispute review, response/review deadlines, elimination, and hunter victory are now implemented with caller-configured policy. Transport contracts, forfeits, and durable integration remain unfinished, so milestone 2 is not complete. The browser prototype is still a separate simulated design artifact.
+Implemented: create/join/recovery, roles/readiness/timer edits, server-controlled phases, frozen reveals and privacy projections, conservative photo/GPS capture, target response/host review, deadline confirmation/expiry, elimination/forfeits, host transfer, immutable results, data deletion, and tracking cleanup. Client screens cover the full round and optional native background collection. The original browser prototype remains a separate simulated design artifact.
 
-Client command validation now binds authenticated identity, rejects malformed or extra fields, and canonicalizes retries. Private session/capture projections now omit command receipts and limit unresolved evidence access to participants and the host reviewing a dispute. Transport contracts, forfeits, and durable integration remain unfinished.
+Verification passed: 37 deterministic engine tests; three live local integration tests including actual alarm-driven reveal/expiry/ending, media authorization, disputes, deletion, and multiplayer membership; process-restart recovery of roster/deadlines/start receipts; TypeScript checks; Worker bundle and web/iOS/Android exports. Browser UI creation reached a real connected lobby with QR, roster, role controls, readiness, and permissions explanations.
 
-The pure scheduling helper now selects the next phase, reveal, capture, or game deadline after reconciliation. Actual durable alarm scheduling and persistence are still unimplemented.
+Durable state/alarm writes are transactional and session operations serialized. HTTP commands and authenticated hibernating WebSockets use protocol 1; five-second HTTP recovery complements socket delivery. Credentials are membership-scoped and hashed server-side. Photos are private, decoded/re-encoded, and trusted only after complete upload. Numeric local GPS, timing, media, and retention policies are documented in [development](development.md).
 
-The pure coordinator now groups session and private tracking updates, freezes reveals before incoming observations, removes eliminated/terminal tracking, and returns the next alarm deadline. Both commands and device location payloads are validated at its boundary. Location contracts reject injected identity/receipt times and malformed numeric data; rejected requests still reconcile gameplay deadlines. Recipient views are projected from the reconciled aggregate. Adapter authentication, transport envelopes, operation serialization, atomic persistence, and actual alarm delivery remain unfinished.
+Native exports do not establish physical permission, background/lock-screen, camera, map-provider, battery, or field behavior. Deployment, external SQL export, edge abuse limits, launch retention/backups policy, and dependency-advisory review remain release requirements. The local implementation is not a production-readiness claim.
 
-The stack is proposed. Detailed behavior marked as proposed is available for review and must be finalized before the relevant implementation.
+Milestone 2 and the local coordinator portion of milestone 3 are implemented. Milestones 4–6 retain their device, external persistence, and physical field exit criteria. Local implementation choices supersede proposals only where recorded in [architecture](architecture.md) and [development](development.md).
 
 ## Implementation milestones
 
@@ -66,19 +66,19 @@ Exit when the group completes a fun round with little host intervention and want
 | Dispute timeout | Expire unresolved disputes; choose response/review durations. |
 | Deadline boundary | Process game expiry first; unresolved captures do not postpone game end. |
 | Host conflict | Friendly host adjudication with recorded decisions; decide secondary reviewer need. |
-| Host absence | Credential recovery, control transfer, and abandoned-session expiry remain open. |
-| Explicit leave | Proposed forfeit; temporary disconnect is separate. Confirm all-hunters-left behavior. |
+| Host absence | Same-installation credential recovery; explicit leave transfers host; disconnect preserves host; local sessions expire in 24 hours. Field evaluation remains. |
+| Explicit leave | Implemented forfeit; temporary disconnect is separate; all hunters leaving cancels. |
 | Late joining | Disabled after start; existing members may reconnect. |
-| GPS | Set accuracy, age, sample-skew, and bounded tolerance thresholds from field data. |
+| GPS | Local trial: 35 m accuracy, 30 s age, 5 s future skew, 15 s sample skew. Calibrate from field data. |
 | Boundaries | Circular area, warning only initially; choose warning/hysteresis settings. |
 | Tracking | Decide background permissions and supported behavior on both operating systems. |
 | Eliminated players | Stop gameplay tracking; restricted spectator view. |
-| Map provider | MapLibre vs Mapbox pending integration/licensing evaluation. |
+| Map provider | react-native-maps native adapter and browser boundary overview implemented; production configuration/licensing and devices unverified. |
 | Auth | Guest identity/credential design first; Better Auth for optional accounts. |
 | Persistence | Durable live authority and idempotent SQL export; verify provider adapter details. |
-| Retention | Numeric lifetimes and deletion/backups workflow must be set before production. |
+| Retention | Local sessions/credentials 24 hours; unused photos five minutes; terminal media cleanup and connected deletion implemented. Launch backups/retention policy needs review. |
 | Notifications | Helpful cue channel, not authority; native/local behavior needs device tests. |
-| Config limits | Choose numeric duration/radius/reveal limits and validate combinations. |
+| Config limits | Numeric limits and combinations implemented for local trials; see development.md. |
 
 ## Keeping this file current
 

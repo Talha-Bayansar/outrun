@@ -5,12 +5,15 @@ build/
 coverage/
 .expo/
 .turbo/
+.wrangler/
+*.tsbuildinfo
 
 # Local environment and credentials
 .env
 .env.*
 !.env.example
 !.env.*.example
+.dev.vars
 
 # Logs and operating system files
 *.log

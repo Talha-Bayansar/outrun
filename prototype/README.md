@@ -1,6 +1,6 @@
 # Outrun interactive prototype
 
-Run `npm run dev` from the repository root, then open http://localhost:4173.
+Run `npm run dev:prototype` from the repository root, then open http://localhost:4173.
 
 This throwaway browser demo explores the documented Manhunt journey. It is not the proposed Expo application or an authoritative multiplayer implementation. All players, map positions, GPS readings, and capture evidence are simulated. State stays in memory and resets on reload. No camera or location permission is requested.
 

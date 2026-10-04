@@ -1,10 +1,39 @@
 {
   "name": "outrun",
   "private": true,
-  "workspaces": ["packages/*"],
-  "engines": { "node": ">=24" },
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "overrides": {
+    "react-native": "0.86.3",
+    "react-native-reanimated": "4.5.1",
+    "react-native-worklets": "0.10.1"
+  },
   "scripts": {
-    "dev": "node prototype/server.mjs",
-    "test": "node --test packages/game-engine/test/*.test.ts"
+    "dev": "concurrently -k -n api,mobile npm:dev:api npm:dev:web",
+    "dev:api": "npm run dev -w @outrun/api",
+    "dev:web": "npm run web -w @outrun/mobile -- --max-workers 2",
+    "dev:mobile": "npm run dev -w @outrun/mobile -- --max-workers 2",
+    "dev:prototype": "node prototype/server.mjs",
+    "test": "node --test packages/game-engine/test/*.test.ts",
+    "test:integration": "node --test services/api/test/*.test.ts",
+    "check": "npm run check --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261004.1",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "concurrently": "^10.0.5",
+    "react-native": "0.86.3",
+    "react-native-reanimated": "4.5.1",
+    "react-native-worklets": "0.10.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.147.0"
   }
 }
