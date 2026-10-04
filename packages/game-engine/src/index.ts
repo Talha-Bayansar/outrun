@@ -5,6 +5,7 @@ export * from './capture.ts';
 export * from './projection.ts';
 export * from './contracts.ts';
 export * from './schedule.ts';
+export * from './coordinator.ts';
 import { advanceCaptures, captureTransition, expireCaptures } from './capture.ts';
 import type { Capture, CaptureContext, CaptureCommand } from './capture.ts';
 export type Role = 'hunter' | 'runner';
