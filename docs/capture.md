@@ -1,6 +1,6 @@
 # Capture and disputes
 
-**Status:** Pure capture lifecycle implemented: validated submission, acceptance/dispute, host review, automatic confirmation/expiry, elimination, and hunter victory. Numeric confirmation deadlines and GPS thresholds remain configurable open decisions. Private uploads, recipient projections, and durable scheduling are not implemented.
+**Status:** Pure capture lifecycle and private recipient projections implemented: validated submission, acceptance/dispute, host review, automatic confirmation/expiry, elimination, and hunter victory. Numeric confirmation deadlines and GPS thresholds remain configurable open decisions. Private uploads and durable scheduling are not implemented.
 
 ## Player flow
 
