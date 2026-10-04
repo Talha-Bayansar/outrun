@@ -6,7 +6,7 @@ Create a session, submit authenticated commands through `transition`, and call `
 
 Implemented: 4–20 player lobby, host role assignment, readiness invalidation, start/abort authorization, command retries, preparation/head start/hunting deadlines, reveal timing, and timer-based runner victory. Preparation defaults to ten seconds for development. Other defaults follow the proposed preset; these are not field-validated production rules.
 
-Not yet implemented: transport schemas, mobile screens, guest credentials, durable storage, device GPS collection, capture/dispute rules, forfeits, or hunter victory. The session state contains no location data. `revealWindow` returns timing metadata only and does not authorize or disclose coordinates. Readiness is a declaration here; a future device/coordinator adapter must verify permission and location status before start.
+Not yet implemented: transport schemas, mobile screens, guest credentials, durable storage, device GPS collection, private photo uploads, forfeits, or durable capture scheduling. The session state contains no location data. `revealWindow` returns timing metadata only and does not authorize or disclose coordinates. Readiness is a declaration here; a future device/coordinator adapter must verify permission and location status before start.
 
 Provider and device spikes remain required. The existing browser prototype remains a separate simulated design artifact. Workspace package boundaries are introduced with the existing npm workflow; pnpm/Turborepo migration is deferred until multiple application build tasks exist.
 
@@ -24,4 +24,12 @@ All policy thresholds are required caller inputs, with no production defaults. O
 
 `projectLocations` returns a fresh own marker and, for hunters only, the current frozen reveal. Hosts receive their gameplay role's view. Outsiders and terminal sessions receive no locations. Projection copies prevent callers from modifying private observations or snapshots. Never broadcast `TrackingState` or internal session storage. Clients must also expire cached markers locally using server deadlines; server filtering alone cannot erase an offline client's cache.
 
-These are pure domain helpers, not a network service. Durable scheduling/storage, transport schemas, rate limiting, eliminated-player filtering, and mobile tracking remain future work. One latest observation per member bounds storage without retaining a movement trail; numeric policy values still require field testing.
+These are pure domain helpers, not a network service. Durable scheduling/storage, transport schemas, rate limiting, and mobile tracking remain future work. One latest observation per member bounds storage without retaining a movement trail; numeric policy values still require field testing.
+
+## Capture lifecycle
+
+`transition` accepts `capture`, `accept_capture`, `dispute_capture`, and `review_capture`. Supply trusted `CaptureContext` for submission: private server observations, verified completed-upload metadata bound to session/owner, location policy, radius, and positive response/review durations. Context is adapter data, not a client payload. No default capture thresholds or deadlines are production-approved. Evidence IDs cannot be reused for another attempt.
+
+An eligible attempt stays pending without elimination. The target can accept or dispute before its deadline; otherwise `advance` auto-confirms. Only the host can approve/reject disputes; unresolved disputes expire. Confirmation eliminates once and expires competing attempts on that runner. Capturing every runner ends with hunter victory. Command retries use existing session receipts. Game expiry takes priority over unresolved attempts, even during delayed recovery; abort expires pending attempts too.
+
+Reconcile and persist tracking after capture transitions. Eliminated players lose collection/disclosure eligibility and disappear from frozen markers. Capture records contain private evidence references: do not broadcast raw session state. A future transport must project capture details for the hunter, target, and authorized reviewer, verify actual uploads, schedule all deadlines, and clean up evidence. Domain tests do not establish device or backend readiness.

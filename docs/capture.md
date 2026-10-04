@@ -1,6 +1,6 @@
 # Capture and disputes
 
-**Status:** Proposed MVP behavior. Confirmation deadlines and GPS thresholds are open decisions.
+**Status:** Pure capture lifecycle implemented: validated submission, acceptance/dispute, host review, automatic confirmation/expiry, elimination, and hunter victory. Numeric confirmation deadlines and GPS thresholds remain configurable open decisions. Private uploads, recipient projections, and durable scheduling are not implemented.
 
 ## Player flow
 
@@ -41,7 +41,7 @@ stateDiagram-v2
   expired --> [*]
 ```
 
-This is a proposal to settle before implementation: valid attempts auto-confirm after a short target-response window unless disputed; disputed attempts expire if not resolved within a bounded review window. Pending/disputed runners remain active until confirmation. The game timer never waits for a dispute.
+The domain implementation follows this configurable development policy: valid attempts auto-confirm after a short target-response window unless disputed; disputed attempts expire if not resolved within a bounded review window. Pending/disputed runners remain active until confirmation. The game timer never waits for a dispute.
 
 At timer expiry, unresolved attempts expire without elimination. Process due game deadlines before response deadlines or incoming commands. A target already finally eliminated makes other unresolved attempts expire; only the first final confirmation receives credit.
 

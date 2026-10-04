@@ -1,6 +1,9 @@
 /** Pure session rules. Adapters supply authenticated actors and server time (ms). */
 export * from './location.ts';
 export * from './tracking.ts';
+export * from './capture.ts';
+import { advanceCaptures, captureTransition, expireCaptures } from './capture.ts';
+import type { Capture, CaptureContext, CaptureCommand } from './capture.ts';
 export type Role = 'hunter' | 'runner';
 export type Phase = 'lobby' | 'countdown' | 'head_start' | 'active' | 'ended' | 'cancelled';
 export interface Settings {
@@ -14,7 +17,7 @@ export const manhuntDefaults: Readonly<Settings> = Object.freeze({
   preparationMs: 10_000, headStartMs: 180_000, durationMs: 2_700_000,
   revealIntervalMs: 180_000, revealWindowMs: 10_000,
 });
-export interface Player { id: string; name: string; role: Role; ready: boolean }
+export interface Player { id: string; name: string; role: Role; ready: boolean; eliminated?: boolean }
 export interface State {
   id: string;
   hostId: string;
@@ -23,7 +26,8 @@ export interface State {
   players: Player[];
   lastAdvancedAt: number;
   deadlines?: { runnersReleasedAt: number; huntStartsAt: number; endsAt: number };
-  result?: { winner: 'runners'; endedAt: number };
+  result?: { winner: 'runners' | 'hunters'; endedAt: number };
+  captures?: Capture[];
   receipts: Record<string, { fingerprint: string; accepted: boolean; reason?: string }>;
 }
 export type Command = { id: string; actorId: string } & (
@@ -32,6 +36,7 @@ export type Command = { id: string; actorId: string } & (
   | { type: 'assign'; playerId: string; role: Role }
   | { type: 'start' }
   | { type: 'abort' }
+  | CaptureCommand
 );
 export interface Outcome { state: State; accepted: boolean; reason?: string; duplicate?: boolean }
 
@@ -65,8 +70,8 @@ export function advance(state: State, now: number): State {
   const next = { ...state, lastAdvancedAt: now };
   const d = state.deadlines;
   if (!d) return next;
-  if (now >= d.endsAt) return { ...next, phase: 'ended', result: { winner: 'runners', endedAt: d.endsAt } };
-  if (now >= d.huntStartsAt) return { ...next, phase: 'active' };
+  if (now >= d.endsAt) return expireCaptures({ ...next, phase: 'ended', result: { winner: 'runners', endedAt: d.endsAt } });
+  if (now >= d.huntStartsAt) return advanceCaptures({ ...next, phase: 'active' }, now);
   if (now >= d.runnersReleasedAt) return { ...next, phase: 'head_start' };
   return next;
 }
@@ -80,7 +85,7 @@ export function revealWindow(state: State, now: number): { number: number; start
   const expiresAt = Math.min(startsAt + current.settings.revealWindowMs, current.deadlines.endsAt);
   if (now < expiresAt) return { number, startsAt, expiresAt };
 }
-export function transition(state: State, command: Command, now: number): Outcome {
+export function transition(state: State, command: Command, now: number, context?: CaptureContext): Outcome {
   let next = advance(state, now);
   const fingerprint = JSON.stringify(command);
   const receipt = Object.hasOwn(next.receipts, command.id) ? next.receipts[command.id] : undefined;
@@ -97,8 +102,13 @@ export function transition(state: State, command: Command, now: number): Outcome
   const player = next.players.find(p => p.id === command.actorId);
   if (command.type === 'abort') {
     if (command.actorId !== next.hostId) return finish(false, 'host_required');
-    next = { ...next, phase: 'cancelled' };
+    next = expireCaptures({ ...next, phase: 'cancelled' });
     return finish(true);
+  }
+  if (['capture', 'accept_capture', 'dispute_capture', 'review_capture'].includes(command.type)) {
+    const result = captureTransition(next, command as Command & CaptureCommand, now, context);
+    next = result.state;
+    return finish(!result.reason, result.reason);
   }
   if (next.phase !== 'lobby') return finish(false, 'lobby_required');
   if (command.type === 'join') {
