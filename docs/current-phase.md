@@ -11,6 +11,8 @@ The first shared TypeScript package now implements lobby membership, role assign
 
 Client command validation now binds authenticated identity, rejects malformed or extra fields, and canonicalizes retries. Private session/capture projections now omit command receipts and limit unresolved evidence access to participants and the host reviewing a dispute. Transport contracts, forfeits, and durable integration remain unfinished.
 
+The pure scheduling helper now selects the next phase, reveal, capture, or game deadline after reconciliation. Actual durable alarm scheduling and persistence are still unimplemented.
+
 The stack is proposed. Detailed behavior marked as proposed is available for review and must be finalized before the relevant implementation.
 
 ## Implementation milestones
