@@ -51,6 +51,26 @@ test('invalid commands and retries still reconcile deadlines and clear terminal 
   assert.throws(() => reconcileSession({ ...aggregate, tracking: createTracking('other') }, 60, policy));
 });
 
+test('untrusted locations reject safely, retain freshness rules, and reconcile on rejection', () => {
+  const first = coordinateLocation(session(), 'a', sample, 40, policy);
+  const spoofed = coordinateLocation(first.aggregate, 'a', { ...sample, receivedAt: 60 }, 60, policy);
+  assert.equal(spoofed.reason, 'invalid_sample');
+  assert.equal(spoofed.aggregate.state.lastAdvancedAt, 60);
+  assert.equal(spoofed.aggregate.tracking.reveal?.markers[0].latitude, 50);
+  assert.equal(spoofed.aggregate.tracking.latest.a.receivedAt, 40);
+  const invalidActor = coordinateLocation(spoofed.aggregate, '', null, 61, policy);
+  assert.equal(invalidActor.reason, 'invalid_actor');
+  const stale = coordinateLocation(invalidActor.aggregate, 'a', { ...sample, observedAt: 0, sequence: 2 }, 101, policy);
+  assert.equal(stale.reason, 'stale_sample');
+  const replay = coordinateLocation(stale.aggregate, 'a', sample, 102, policy);
+  assert.equal(replay.reason, 'out_of_order');
+  const terminal = coordinateLocation(replay.aggregate, 'a', null, 130, policy);
+  assert.equal(terminal.reason, 'invalid_sample');
+  assert.equal(terminal.aggregate.state.phase, 'ended');
+  assert.deepEqual(terminal.aggregate.tracking, createTracking('game'));
+  assert.equal(terminal.wakeAt, undefined);
+});
+
 test('capture commands use aggregate observations and remove eliminated locations at deadlines', () => {
   let aggregate = session();
   for (const actor of ['host', 'a']) aggregate = coordinateLocation(aggregate, actor, sample, 40, policy).aggregate;

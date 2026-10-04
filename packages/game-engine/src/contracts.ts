@@ -1,9 +1,31 @@
 import type { Command } from './index.ts';
+import { validCoordinate } from './location.ts';
+import type { DeviceObservation } from './tracking.ts';
 
 export type CommandParseResult = { accepted: true; command: Command } |
   { accepted: false; reason: 'invalid_actor' | 'invalid_command' };
 const text = (value: unknown): value is string => typeof value === 'string' &&
   value.trim().length > 0 && value.length <= 80;
+
+export type LocationParseResult = { accepted: true; sample: DeviceObservation } |
+  { accepted: false; reason: 'invalid_actor' | 'invalid_sample' };
+
+/** Parse JSON-decoded device data; identity and receipt time are server-owned. */
+export function parseClientLocation(payload: unknown, actorId: string): LocationParseResult {
+  if (!text(actorId)) return { accepted: false, reason: 'invalid_actor' };
+  const invalid: LocationParseResult = { accepted: false, reason: 'invalid_sample' };
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return invalid;
+  const p = payload as Record<string, unknown>;
+  const fields = ['latitude', 'longitude', 'accuracyMeters', 'observedAt', 'sequence'];
+  if (Object.keys(p).length !== fields.length || !fields.every(key => Object.hasOwn(p, key))) return invalid;
+  const { latitude, longitude, accuracyMeters, observedAt, sequence } = p;
+  if (typeof latitude !== 'number' || typeof longitude !== 'number' || typeof accuracyMeters !== 'number' ||
+      typeof observedAt !== 'number' || typeof sequence !== 'number') return invalid;
+  const sample: DeviceObservation = { latitude, longitude, accuracyMeters, observedAt, sequence };
+  if (!validCoordinate(sample) || !Number.isFinite(sample.accuracyMeters) || sample.accuracyMeters < 0 ||
+      ![sample.observedAt, sample.sequence].every(value => Number.isSafeInteger(value) && value >= 0)) return invalid;
+  return { accepted: true, sample };
+}
 
 /** Parse a JSON-decoded payload. Identity comes exclusively from authenticated credentials. */
 export function parseClientCommand(payload: unknown, actorId: string): CommandParseResult {

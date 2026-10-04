@@ -13,6 +13,8 @@ Client command validation now binds authenticated identity, rejects malformed or
 
 The pure scheduling helper now selects the next phase, reveal, capture, or game deadline after reconciliation. Actual durable alarm scheduling and persistence are still unimplemented.
 
+The pure coordinator now groups session and private tracking updates, freezes reveals before incoming observations, removes eliminated/terminal tracking, and returns the next alarm deadline. Both commands and device location payloads are validated at its boundary. Location contracts reject injected identity/receipt times and malformed numeric data; rejected requests still reconcile gameplay deadlines. Recipient views are projected from the reconciled aggregate. Adapter authentication, transport envelopes, operation serialization, atomic persistence, and actual alarm delivery remain unfinished.
+
 The stack is proposed. Detailed behavior marked as proposed is available for review and must be finalized before the relevant implementation.
 
 ## Implementation milestones

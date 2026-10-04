@@ -1,12 +1,12 @@
 import { advance, transition } from './index.ts';
 import type { State } from './index.ts';
 import type { CaptureContext } from './capture.ts';
-import { parseClientCommand } from './contracts.ts';
+import { parseClientCommand, parseClientLocation } from './contracts.ts';
 import type { LocationPolicy } from './location.ts';
 import { projectSession } from './projection.ts';
 import { nextWakeAt } from './schedule.ts';
 import { ingestLocation, projectLocations, reconcileTracking } from './tracking.ts';
-import type { DeviceObservation, TrackingState } from './tracking.ts';
+import type { TrackingState } from './tracking.ts';
 
 /** Private aggregate. Persist both fields atomically; never deliver this to clients. */
 export interface SessionAggregate { state: State; tracking: TrackingState }
@@ -34,11 +34,13 @@ export function coordinateCommand(aggregate: SessionAggregate, payload: unknown,
   return { ...after, accepted: outcome.accepted, reason: outcome.reason, duplicate: outcome.duplicate };
 }
 
-/** Device observations are typed adapter input; JSON validation belongs at transport ingress. */
+/** Reject malformed JSON data while still reconciling scheduled gameplay effects. */
 export function coordinateLocation(aggregate: SessionAggregate, actorId: string,
-  sample: DeviceObservation, now: number, policy: LocationPolicy) {
+  payload: unknown, now: number, policy: LocationPolicy) {
   const before = reconcileSession(aggregate, now, policy);
-  const outcome = ingestLocation(before.aggregate.state, before.aggregate.tracking, actorId, sample, now, policy);
+  const parsed = parseClientLocation(payload, actorId);
+  if (!parsed.accepted) return { ...before, accepted: false, reason: parsed.reason };
+  const outcome = ingestLocation(before.aggregate.state, before.aggregate.tracking, actorId, parsed.sample, now, policy);
   return { aggregate: { state: before.aggregate.state, tracking: outcome.tracking },
     wakeAt: before.wakeAt, accepted: outcome.accepted, reason: outcome.reason };
 }
