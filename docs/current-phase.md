@@ -7,7 +7,7 @@
 
 The founding brief is documented in [product.md](product.md), with a separate [MVP boundary](mvp.md) and focused design documents. This repository has no implemented mobile application, backend, database, or deployed infrastructure yet.
 
-The first shared TypeScript package now implements lobby membership, role assignment, readiness, start/abort authorization, idempotent command receipts, round deadlines, reveal timing, and timer-based runner results. Run `npm test`; see [implementation notes](../packages/game-engine/README.md) for boundaries. Capture, location, transport validation, and hunter victory remain unimplemented, so milestone 2 is not complete. The browser prototype is still a separate simulated design artifact.
+The first shared TypeScript package now implements lobby membership, role assignment, readiness, start/abort authorization, idempotent command receipts, round deadlines, reveal timing, and timer-based runner results. Run `npm test`; see [implementation notes](../packages/game-engine/README.md) for boundaries. Pure location validation, great-circle geometry, accuracy-aware proximity, and circular boundary warning helpers are also implemented with caller-supplied policy thresholds. Private member location ingestion, frozen runner reveals, recipient projections, and terminal tracking cleanup are now implemented as pure helpers. Capture, transport validation, durable tracking integration, and hunter victory remain unimplemented, so milestone 2 is not complete. The browser prototype is still a separate simulated design artifact.
 
 The stack is proposed. Detailed behavior marked as proposed is available for review and must be finalized before the relevant implementation.
 

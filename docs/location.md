@@ -1,6 +1,6 @@
 # Location mechanics
 
-**Status:** MVP design proposal. Numeric GPS quality and tolerance limits require field measurements.
+**Status:** Pure observation validation, geometry, proximity, and boundary helpers are implemented in the shared engine. Pure member ingestion and role-specific frozen reveal projections are implemented; durable coordinator integration and device collection remain proposed. Numeric GPS quality and tolerance limits require field measurements.
 
 ## Separate responsibilities
 
