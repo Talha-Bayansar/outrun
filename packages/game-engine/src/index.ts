@@ -3,6 +3,7 @@ export * from './location.ts';
 export * from './tracking.ts';
 export * from './capture.ts';
 export * from './projection.ts';
+export * from './contracts.ts';
 import { advanceCaptures, captureTransition, expireCaptures } from './capture.ts';
 import type { Capture, CaptureContext, CaptureCommand } from './capture.ts';
 export type Role = 'hunter' | 'runner';

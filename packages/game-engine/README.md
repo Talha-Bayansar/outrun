@@ -6,9 +6,13 @@ Create a session, submit authenticated commands through `transition`, and call `
 
 Implemented: 4–20 player lobby, host role assignment, readiness invalidation, start/abort authorization, command retries, preparation/head start/hunting deadlines, reveal timing, and timer-based runner victory. Preparation defaults to ten seconds for development. Other defaults follow the proposed preset; these are not field-validated production rules.
 
-Not yet implemented: transport schemas, mobile screens, guest credentials, durable storage, device GPS collection, private photo uploads, forfeits, or durable capture scheduling. The session state contains no location data. `revealWindow` returns timing metadata only and does not authorize or disclose coordinates. Readiness is a declaration here; a future device/coordinator adapter must verify permission and location status before start.
+Not yet implemented: complete transport protocol, mobile screens, guest credentials, durable storage, device GPS collection, private photo uploads, forfeits, or durable capture scheduling. The session state contains no location data. `revealWindow` returns timing metadata only and does not authorize or disclose coordinates. Readiness is a declaration here; a future device/coordinator adapter must verify permission and location status before start.
 
 Provider and device spikes remain required. The existing browser prototype remains a separate simulated design artifact. Workspace package boundaries are introduced with the existing npm workflow; pnpm/Turborepo migration is deferred until multiple application build tasks exist.
+
+## Client command validation
+
+`parseClientCommand(payload, authenticatedActorId)` validates a JSON-decoded command before `transition`. Clients send `id`, `type`, and only that command's fields. Actor identity comes from credentials; client actor IDs, server timestamps, context, unknown fields, missing fields, and coerced values are rejected. IDs and names are nonblank strings bounded to 80 characters. Reconstructed commands have stable property order, so reordered JSON retries produce the same engine receipt fingerprint. Authentication, JSON decoding, request size/rate limits, protocol versioning, location message contracts, and response envelopes still belong to the future transport. Validation does not replace engine authorization or trusted capture context.
 
 ## Location foundation
 
